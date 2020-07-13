@@ -48,3 +48,22 @@ class TicTacToeGame():
         if sum([self.board[i][2-i] for i in range(3)]) == -3:
             return 'o'
 
+    def pretty_print_board(self):
+        symbol_lookup = {-1 : 'o', 1: 'x', 0: ' '}
+
+        middle_row = ['-', '+', '-', '+', '-']
+
+        def pad_row(row):
+            return [symbol_lookup[row[0]],
+                    '|',
+                    symbol_lookup[row[1]],
+                    '|',
+                    symbol_lookup[row[2]]]
+        nice_board = [pad_row(self.board[0]),
+                middle_row,
+                pad_row(self.board[1]),
+                middle_row,
+                pad_row(self.board[2])]
+        for row in nice_board:
+            print(*row)
+        
