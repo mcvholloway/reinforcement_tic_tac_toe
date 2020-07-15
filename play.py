@@ -1,18 +1,18 @@
-from tictactoe import TicTacToeGame
+from reinforcement_tic_tac_toe.tictactoe import TicTacToeGame
 import ast
-from draw_board import draw_board
+from reinforcement_tic_tac_toe.draw_board import draw_board
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     tt = TicTacToeGame()
-
+    tie = None
     winner = None
     players = ['x', 'o']
     current_player = 1
 
     draw_board(tt.board)
     
-    while winner is None:
+    while winner is None and tie is None:
         current_player = 1 - current_player
 
         position = input('Input {}\'s move: '.format(players[current_player]))
@@ -23,9 +23,12 @@ if __name__ == '__main__':
         # Close the old plot
         plt.close()
         draw_board(tt.board)
-
+        # tt.pretty_print_board()   
         winner = tt.check_for_winner()
-        
-    print('{} wins'.format(players[current_player]))
+        tie = tt.check_for_tie()
+    if winner != None:
+        print('{} wins'.format(players[current_player]))
+    elif tie != None:
+        print('The game is a draw')
     # Keep final plot open until pressing enter
     input('Press Enter to exit.')
