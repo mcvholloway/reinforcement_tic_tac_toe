@@ -1,6 +1,6 @@
-from reinforcement_tic_tac_toe.tictactoe import TicTacToeGame
+from tictactoe import TicTacToeGame
 import ast
-from reinforcement_tic_tac_toe.draw_board import draw_board
+from draw_board import draw_board
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
