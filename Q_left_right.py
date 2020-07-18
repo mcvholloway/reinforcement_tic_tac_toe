@@ -1,13 +1,5 @@
 import random
 
-#
-# l = [0,1,5]
-# w = [10,20,100000000000000000]
-#
-# x = random.choices(l,w,k=1).pop()
-# print('complete')
-
-
 class Q_graph:
     def __init__(self,q_graph_dict, alpha=1,gamma=1):
         self.q_graph = q_graph_dict
@@ -50,40 +42,18 @@ class Q_graph:
             self.update_q_values(self.current_node,new_neighbor)
             self.current_node = new_neighbor
 
+if __name__ == '__main__':
+		q_graph_dict = dict()
+		for i in range(11):
+				if i == 0:
+						q_graph_dict.update({i: {1: (1,0)}})
+				elif i == 10:
+						q_graph_dict.update({i: {}})
+				elif i == 9:
+						q_graph_dict[9] = {8:(1,0), 10: (1,-1000000000)}
+				else:
+						q_graph_dict.update({i: {i-1: (1,0), i+1: (1,0)}})
 
 
-
-
-# class optimize:
-#     def __init__(self,q_graph):
-
-
-
-
-
-q_graph_dict = dict()
-for i in range(11):
-    if i == 0:
-        q_graph_dict.update({i: {1: (1,0)}})
-    elif i == 10:
-        q_graph_dict.update({i: {}})
-    elif i == 9:
-        q_graph_dict[9] = {8:(1,0), 10: (1,1000000000)}
-    else:
-        q_graph_dict.update({i: {i-1: (1,0), i+1: (1,0)}})
-
-
-q_graph = Q_graph(q_graph_dict)
-q_graph.gamma = .1
-q_graph.optimize(iterations=1000,supidity_rate=.1)
-# for i in range(10):
-#     print(q_graph.current_node)
-#
-#     q_graph.decide_neighbor()
-#
-#     print(q_graph.current_node)
-#     print('***********************')
-
-
-print('cpsdfa')
-
+		q_graph = Q_graph(q_graph_dict, gamma = 0.1)
+		q_graph.optimize(iterations=1000,supidity_rate=.1)
