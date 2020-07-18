@@ -1,3 +1,7 @@
+.idea
+reinforcement_tic_tac_toe
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
