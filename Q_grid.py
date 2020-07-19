@@ -12,9 +12,13 @@ if __name__ == '__main__':
 				q_graph_dict[(0,i)].pop((-1,i), None)
 				q_graph_dict[(4,i)].pop((5,i), None)
 
-		q_graph_dict[(3,4)][(4,4)] = (1, 1000)
-		q_graph_dict[(4,3)][(4,4)] = (1, 1000)
+		q_graph_dict[(3,4)][(4,4)] = (1, 100)
+		q_graph_dict[(4,3)][(4,4)] = (1, 100)
 		q_graph_dict[(4,4)] = {}
+
+		q_graph_dict[(0,3)][(0,4)] = (1, -100)
+		q_graph_dict[(1,4)][(0,4)] = (1,-100)
+		q_graph_dict[(0,4)] = {}
 
 		print(q_graph_dict)
 
