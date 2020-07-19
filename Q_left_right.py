@@ -1,8 +1,8 @@
 import random
 import math
 
-def softmax(scores):
-		exp_scores = [math.exp(score) for score in scores]
+def softmax_clipped(scores):
+		exp_scores = [math.exp(min(score, 100)) for score in scores]
 		total_exp = sum(exp_scores)
 		softmax_scores = [score / total_exp for score in exp_scores]
 		return softmax_scores
@@ -45,7 +45,7 @@ class Q_graph:
                 new_neighbor = random.choice(neighbors)
             else:
                 neighbor_qs = [self.q_graph[self.current_node][x][0] for x in neighbors]
-                softmax_qs = softmax(neighbor_qs)
+                softmax_qs = softmax_clipped(neighbor_qs)
                 new_neighbor = random.choices(neighbors,softmax_qs,k=1).pop()
             self.update_q_values(self.current_node,new_neighbor)
             self.current_node = new_neighbor
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 				elif i == 10:
 						q_graph_dict.update({i: {}})
 				elif i == 9:
-						q_graph_dict[9] = {8:(1,0), 10: (1,100)}
+						q_graph_dict[9] = {8:(1,0), 10: (1,1000000)}
 				else:
 						q_graph_dict.update({i: {i-1: (1,0), i+1: (1,0)}})
 
