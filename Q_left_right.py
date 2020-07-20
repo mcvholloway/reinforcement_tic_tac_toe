@@ -1,12 +1,12 @@
 import random
+import math
+import json
 
-#
-# l = [0,1,5]
-# w = [10,20,100000000000000000]
-#
-# x = random.choices(l,w,k=1).pop()
-# print('complete')
-
+def softmax_clipped(scores):
+		exp_scores = [math.exp(min(score, 100)) for score in scores]
+		total_exp = sum(exp_scores)
+		softmax_scores = [score / total_exp for score in exp_scores]
+		return softmax_scores
 
 class Q_graph:
     def __init__(self,q_graph_dict, alpha=1,gamma=1):
@@ -16,13 +16,26 @@ class Q_graph:
         self.gamma = gamma
 
     def optimize(self,iterations,supidity_rate=.1):
+        current_path_num = 1
+        current_path = []
+        log = dict()
+        
         for i in range(iterations):
-            print(self.current_node)
+            current_path.append(self.current_node)
+            #print(self.current_node)
 
-            self.decide_neighbor(supidity_rate)
+            ongoing = self.decide_neighbor(supidity_rate)
+            if not ongoing:
+                log[current_path_num] = current_path
+                current_path_num += 1
+                current_path = []
 
-            print(self.current_node)
-            print('***********************')
+            #print(self.current_node)
+            #print('***********************')
+        current_path.append(self.current_node)
+        log[current_path_num] = current_path
+        with open('log.json', 'w') as fi:
+            fi.write(json.dumps(log, indent = 4))
         print(self.q_graph)
 
     def update_q_values(self, current_node, new_node):
@@ -37,6 +50,7 @@ class Q_graph:
         neighbors = list(self.q_graph[self.current_node].keys())
         if len(neighbors) == 0:
             self.current_node = random.choice(list(self.q_graph.keys()))
+            return False
         else:
             logic = ['smart','stupid']
             logic_weights = [1-stupidity_rate, stupidity_rate]
@@ -46,44 +60,24 @@ class Q_graph:
                 new_neighbor = random.choice(neighbors)
             else:
                 neighbor_qs = [self.q_graph[self.current_node][x][0] for x in neighbors]
-                new_neighbor = random.choices(neighbors,neighbor_qs,k=1).pop()
+                softmax_qs = softmax_clipped(neighbor_qs)
+                new_neighbor = random.choices(neighbors,softmax_qs,k=1).pop()
             self.update_q_values(self.current_node,new_neighbor)
             self.current_node = new_neighbor
+            return True
+
+if __name__ == '__main__':
+		q_graph_dict = dict()
+		for i in range(11):
+				if i == 0:
+						q_graph_dict.update({i: {1: (1,0)}})
+				elif i == 10:
+						q_graph_dict.update({i: {}})
+				elif i == 9:
+						q_graph_dict[9] = {8:(1,0), 10: (1,1000000)}
+				else:
+						q_graph_dict.update({i: {i-1: (1,0), i+1: (1,0)}})
 
 
-
-
-
-# class optimize:
-#     def __init__(self,q_graph):
-
-
-
-
-
-q_graph_dict = dict()
-for i in range(11):
-    if i == 0:
-        q_graph_dict.update({i: {1: (1,0)}})
-    elif i == 10:
-        q_graph_dict.update({i: {}})
-    elif i == 9:
-        q_graph_dict[9] = {8:(1,0), 10: (1,1000000000)}
-    else:
-        q_graph_dict.update({i: {i-1: (1,0), i+1: (1,0)}})
-
-
-q_graph = Q_graph(q_graph_dict)
-q_graph.gamma = .1
-q_graph.optimize(iterations=1000,supidity_rate=.1)
-# for i in range(10):
-#     print(q_graph.current_node)
-#
-#     q_graph.decide_neighbor()
-#
-#     print(q_graph.current_node)
-#     print('***********************')
-
-
-print('cpsdfa')
-
+		q_graph = Q_graph(q_graph_dict, gamma = 0.1)
+		q_graph.optimize(iterations=1000,supidity_rate=.1)
