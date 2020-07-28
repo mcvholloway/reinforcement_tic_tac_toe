@@ -39,21 +39,31 @@ class Trainer:
         new_q = old_q + self.alpha*(reward + self.gamma*max_q - old_q)
         self.strategy.game_graph[old_state][action] = new_q
 
-    def choose_action(self, current_state):
+    def choose_action(self, current_state,stupidity_rate=0):
         new_path = False
         possible_moves = list(self.strategy.game_graph[current_state].keys())
         if len(possible_moves) == 0:
             action = 'start_new_path'
         else:
-            q_vals = [self.strategy.game_graph[current_state][action] for action in possible_moves]
-            weights = softmax_clipped(q_vals)
-            action = random.choices(possible_moves, weights = weights)[0]
+            being_stupid = random.choices([['yes','no'], [stupidity_rate, 1 - stupidity_rate]],k=1).pop()
+            if being_stupid == 'no':
+                q_vals = [self.strategy.game_graph[current_state][action] for action in possible_moves]
+                weights = softmax_clipped(q_vals)
+                action = random.choices(possible_moves, weights = weights)[0]
+            else:
+                action = random.choice(possible_moves)
         return action
 
     def optimize(self, iterations = 100):
         for i in range(iterations):
-            move = self.choose_action(self.current_state)
+            stupidity_rate = math.cos((math.pi/2)*(i/iterations))**2
+            move = self.choose_action(self.current_state,stupidity_rate=stupidity_rate)
             if move == 'start_new_path':
-                self.current_state = random.choice(list(self.strategy.game_graph.keys()))
+                # self.current_state = random.choice(list(self.strategy.game_graph.keys()))
+                self.current_state = self.game.start_new_path()
+                if self.current_state not in self.strategy.game_graph:
+                    valid_actions = self.game.list_valid_actions(self.current_state)
+                    self.strategy.game_graph[self.current_state] = dict(zip(valid_actions, [1] * len(valid_actions)))
+
             else:
                 self.update_q_values(self.current_state, move)
