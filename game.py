@@ -48,13 +48,20 @@ class BlackJack:
             new_state = current_state[0],'stand'
 
         if new_state[0] > 21:
-            reward = -1000
+            reward = -1
 
         else:
-            if action == 'stand':
-                reward = (current_state[0] - 21)**3
-            elif new_state[0] == 21:
-                reward = 10000
+            if action == 'stand' or new_state[0] == 21:
+                dealer_hand = self.make_dealer_hand()
+                if dealer_hand < new_state[0]:
+                    reward = 1
+                elif dealer_hand == new_state[0]:
+                    reward = 0
+                else:
+                    reward = -1
+                #reward = (current_state[0] - 21)**3
+            #elif new_state[0] == 21:
+            #    reward = 10000
             else:
                 reward = 0
 
@@ -64,3 +71,12 @@ class BlackJack:
         new_cards = random.choices([x for x in range(2,11)], [4]*8 + [16],k=2)
         new_hand = sum(new_cards),'hit'
         return new_hand
+
+    def make_dealer_hand(self):
+        total = 0
+        while total < 17:
+            total += random.choices([x for x in range(2,11)], [4]*8 + [16])[0]
+        if total > 21:
+            return 0
+        return total
+
