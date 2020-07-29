@@ -21,7 +21,7 @@ import random
 
 if __name__ == '__main__':
     game = BlackJack()
-    starting_state = (10,'hit')
+    starting_state = game.start_new_path()
     strategy = Strategy(game_graph={starting_state: {'hit': 1, 'stand': 1}})
     trainer = Trainer(strategy=strategy, current_state=starting_state, game=game,alpha=.1)
 
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     #  else:
     #      trainer.update_q_values(trainer.current_state, move)
 
-    trainer.optimize(iterations=500000)
+    trainer.optimize(iterations=50000)
     # print(strategy.game_graph)
     keys = list(strategy.game_graph.keys())
     keys.sort()
