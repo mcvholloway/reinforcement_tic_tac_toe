@@ -34,7 +34,7 @@ if __name__ == '__main__':
     #  else:
     #      trainer.update_q_values(trainer.current_state, move)
 
-    trainer.optimize(iterations=50000)
+    trainer.optimize(iterations=500000)
     # print(strategy.game_graph)
     keys = list(strategy.game_graph.keys())
     keys.sort()
