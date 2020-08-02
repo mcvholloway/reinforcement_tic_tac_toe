@@ -46,9 +46,9 @@ class BlackJack:
             hand = self.add_new_card(hand, new_card)
             new_state_0 = tuple(hand)
 
-            new_state = (new_state_0,'hit')
+            new_state = (new_state_0,'hit',current_state[2])
         else:
-            new_state = current_state[0],'stand'
+            new_state = current_state[0],'stand',current_state[2]
 
         hand_value = new_state[0][0]
         if hand_value > 21:
@@ -56,7 +56,7 @@ class BlackJack:
 
         else:
             if action == 'stand' or hand_value == 21:
-                dealer_hand = self.make_dealer_hand()
+                dealer_hand = self.make_dealer_hand(current_state[2])
                 if dealer_hand < hand_value:
                     reward = 1
                 elif dealer_hand == hand_value:
@@ -69,15 +69,24 @@ class BlackJack:
         return new_state, reward
 
     def start_new_path(self):
+        dealer_card = random.choices([x for x in range(1,11)], [4]*9 + [16],k=1).pop()
         new_cards = random.choices([x for x in range(1,11)], [4]*9 + [16],k=2)
         new_hand = [0] * 2
         for card in new_cards:
             new_hand = self.add_new_card(new_hand, card)
-        new_hand = tuple(new_hand),'hit'
+        new_hand = tuple(new_hand),'hit', dealer_card
         return new_hand
 
-    def make_dealer_hand(self):
+    ### TODO Add hitting on Soft 17 for dealer
+    ### TODO Add Split Functionality
+    ### TODO Add Double Down Functionality
+    ### TODO Add Surender Option
+    ### TODO Add Insurance
+    ### TODO DISPLAY
+
+    def make_dealer_hand(self, showing_card):
         hand = [0]*2
+        hand = self.add_new_card(hand, showing_card)
         while hand[0] < 17:
             new_card = random.choices([x for x in range(1,11)], [4]*9 + [16])[0]
             hand = self.add_new_card(hand, new_card)
