@@ -160,6 +160,7 @@ class Trainer:
                 else:
                     ### Switch to next player
                     self.strategy = self.players[(self.current_turn + 1) % self.number_players]
+                    self.current_turn += 1
 
                     if new_state not in self.strategy.game_graph:
                         valid_actions = self.game.list_valid_actions(new_state)
@@ -167,7 +168,6 @@ class Trainer:
                             self.strategy.game_graph[new_state] = {}
                         else:
                             self.strategy.game_graph[new_state] = dict(zip(valid_actions, [1] * len(valid_actions)))
-                    self.current_state = new_state
 
 
 

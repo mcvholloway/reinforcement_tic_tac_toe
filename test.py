@@ -23,7 +23,6 @@ if __name__ == '__main__':
     # game = BlackJack()
     game = Left_Right_Game()
     starting_state = game.start_new_path()
-    print(starting_state)
     strategy_1 = Strategy(game_graph = {starting_state : {'left': 1, 'right' : 1}})
     strategy_2 = Strategy(game_graph = {starting_state : {'left': 1, 'right' : 1}})
 
