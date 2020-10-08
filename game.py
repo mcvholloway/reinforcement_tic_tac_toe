@@ -4,6 +4,9 @@ class Left_Right_Game:
     def __init__(self):
         pass
 
+    def start_new_path(self):
+        return random.randint(1,8)
+
     def list_valid_actions(self, state):
         if state == 0:
             return ['right']
@@ -13,6 +16,8 @@ class Left_Right_Game:
             return ['right', 'left']
 
     def find_next_state(self, current_state, action):
+
+        stale_mate = False
         if action == 'left':
             new_state = current_state - 1
         else:
@@ -20,10 +25,12 @@ class Left_Right_Game:
 
         if new_state == 10:
             reward = 100
+            game_over = True
         else:
             reward = 0
+            game_over = False
 
-        return new_state, reward
+        return new_state, reward, game_over, stale_mate
 
 
 class BlackJack:
@@ -53,9 +60,12 @@ class BlackJack:
         hand_value = new_state[0][0]
         if hand_value > 21:
             reward = -1
+            game_over = True
 
         else:
             if action == 'stand' or hand_value == 21:
+                game_over = True
+
                 dealer_hand = self.make_dealer_hand(current_state[2])
                 if dealer_hand < hand_value:
                     reward = 1
@@ -64,9 +74,10 @@ class BlackJack:
                 else:
                     reward = -1
             else:
+                game_over = False
                 reward = 0
 
-        return new_state, reward
+        return new_state, reward, game_over, False
 
     def start_new_path(self):
         dealer_card = random.choices([x for x in range(1,11)], [4]*9 + [16],k=1).pop()
