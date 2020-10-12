@@ -53,13 +53,14 @@ class Strategy:
                 action = random.choice(possible_moves)
         return action
 
-
 class HumanStrategy:
     ### TODO Add MCTS Update values
     """Class that initiates game graph and provides a method, depending on strategy type, to update
     the values that dictates the decisions of the player """
 
+
     def __init__(self, game_graph={}, strategy_type="q_learning"):
+
         ### game_graph is a dictionary of dictionaries -- keys are states
         ### and keys of keys are actions and values are q-values
         self.game_graph = game_graph
@@ -76,7 +77,6 @@ class HumanStrategy:
         print('Valid Moves: {}'.format(list(self.game_graph[current_state].keys())))
         action = input('Input Move: ')
         return action
-
 
 class Trainer:
     def __init__(self, players, current_state, game, alpha=1, gamma=0.1, stupidity_rate=0):
@@ -187,6 +187,7 @@ class Trainer:
                             self.strategy.game_graph[new_state] = {}
                         else:
                             self.strategy.game_graph[new_state] = dict(zip(valid_actions, [1] * len(valid_actions)))
+
 
     # def update_q_values(self, old_state, action):
     #     old_q = self.strategy.game_graph[old_state][action]

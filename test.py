@@ -3,6 +3,7 @@ from game import Left_Right_Game, BlackJack, TicTacToeGame
 import json
 import pickle
 from datetime import datetime
+
 import random
 
 def decode(x):
@@ -29,6 +30,7 @@ def decode(x):
 #     print(strategy.game_graph)
 
 if __name__ == '__main__':
+
     game = TicTacToeGame()
     starting_state = game.start_new_path()
     print(starting_state)
@@ -44,6 +46,7 @@ if __name__ == '__main__':
     # json_thing = json.dumps(strategy_new)
     with open('results_{}.json'.format(datetime.now().strftime('%y-%m-%d')), 'wb') as file:
         json.dump(strategy_new,file)
+
     keys = list(strategy_1.game_graph.keys())
     try:
         keys.sort()
