@@ -46,6 +46,10 @@ class Strategy:
         if len(possible_moves) == 0:
             action = 'start_new_path'
         else:
+            if stupidity_rate == -1:
+                q_vals = [self.game_graph[current_state][action] for action in possible_moves]
+                idx_max = q_vals.index(max(q_vals))
+                return possible_moves[idx_max]
             being_stupid = random.choices([['yes', 'no'], [stupidity_rate, 1 - stupidity_rate]], k=1).pop()
             if being_stupid == 'no':
                 q_vals = [self.game_graph[current_state][action] for action in possible_moves]
@@ -104,10 +108,14 @@ class HumanStrategyTTT:
             print('You are playing as O')
         
         self.pretty_print_board(current_state)
+
+        valid_moves = list(self.game_graph[current_state].keys())
         
-        print('Valid Moves: {}'.format(list(self.game_graph[current_state].keys())))
-        action = input('Input Move: ')
-        return ast.literal_eval(action)
+        print('Valid Moves: {}'.format(valid_moves))
+        action = ast.literal_eval(input('Input Move: '))
+        while action not in valid_moves:
+            action = ast.literal_eval(input('Try again: '))
+        return action
 
 class HumanStrategy:
     ### TODO Add MCTS Update values
@@ -177,8 +185,12 @@ class Trainer:
                                               gamma=self.gamma,
                                               new_state=self.current_state,
                                               reward=0)
-
-            stupidity_rate = math.cos((math.pi / 2) * (2 * stupid_periods - 1)*(i / iterations)) ** 2
+            if stupid_periods == 0:
+                stupidity_rate = 0
+            elif stupid_periods == -1:
+                stupidity_rate = -1
+            else:
+                stupidity_rate = math.cos((math.pi / 2) * (2 * stupid_periods - 1)*(i / iterations)) ** 2
             move = self.strategy.choose_action(self.current_state, stupidity_rate=stupidity_rate)
 
             if move == 'start_new_path':
