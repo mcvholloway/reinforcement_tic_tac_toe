@@ -1,4 +1,4 @@
-from strategy import Strategy, Trainer
+from strategy import Strategy, Trainer, HumanStrategyTTT
 from game import Left_Right_Game, BlackJack, TicTacToeGame
 import json
 import pickle
@@ -21,7 +21,8 @@ if __name__ == '__main__':
     starting_state = game.start_new_path()
     print(starting_state)
     strategy_1 = Strategy(game_graph = {starting_state : {action: 1 for action in game.list_valid_actions(starting_state)}})
-    strategy_2 = Strategy(game_graph = {starting_state :  {action: 1 for action in game.list_valid_actions(starting_state)}})
+    #strategy_2 = Strategy(game_graph = {starting_state :  {action: 1 for action in game.list_valid_actions(starting_state)}})
+    strategy_2 = HumanStrategyTTT(game_graph = {starting_state : {action: 1 for action in game.list_valid_actions(starting_state)}})
 
     trainer = Trainer(players=[strategy_1, strategy_2], current_state=starting_state, game=game,alpha=.1)
 

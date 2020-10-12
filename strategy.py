@@ -1,6 +1,8 @@
 import random
 import math
 import logging
+import numpy as np
+import ast
 
 logging.basicConfig(level=logging.INFO)
 
@@ -53,6 +55,60 @@ class Strategy:
                 action = random.choice(possible_moves)
         return action
 
+class HumanStrategyTTT:
+    ### TODO Add MCTS Update values
+    """Class that initiates game graph and provides a method, depending on strategy type, to update
+    the values that dictates the decisions of the player """
+
+
+    def __init__(self, game_graph={}, strategy_type="q_learning"):
+
+        ### game_graph is a dictionary of dictionaries -- keys are states
+        ### and keys of keys are actions and values are q-values
+        self.game_graph = game_graph
+
+    def pretty_print_board(self, board):
+
+        board = np.array(board)
+        symbol_lookup = {-1: 'o', 1: 'x', 0: ' '}
+
+        middle_row = ['-', '+', '-', '+', '-']
+
+        def pad_row(row):
+            return [symbol_lookup[row[0]],
+                    '|',
+                    symbol_lookup[row[1]],
+                    '|',
+                    symbol_lookup[row[2]]]
+
+        nice_board = [pad_row(board[0]),
+                      middle_row,
+                      pad_row(board[1]),
+                      middle_row,
+                      pad_row(board[2])]
+        for row in nice_board:
+            print(*row)
+
+    def update_q_values(self, old_state, action, alpha, gamma, new_state, reward):
+        self.pretty_print_board(new_state)
+        print('Reward: ', reward)
+
+    def choose_action(self, current_state, stupidity_rate=0):
+        possible_moves = list(self.game_graph[current_state].keys())
+        if len(possible_moves) == 0:
+            return 'start_new_path'
+        board = np.array(current_state)
+        if board.sum() == 0:
+            print('You are playing as X')
+        else:
+            print('You are playing as O')
+        
+        self.pretty_print_board(current_state)
+        
+        print('Valid Moves: {}'.format(list(self.game_graph[current_state].keys())))
+        action = input('Input Move: ')
+        return ast.literal_eval(action)
+
 class HumanStrategy:
     ### TODO Add MCTS Update values
     """Class that initiates game graph and provides a method, depending on strategy type, to update
@@ -65,6 +121,8 @@ class HumanStrategy:
         ### and keys of keys are actions and values are q-values
         self.game_graph = game_graph
 
+
+
     def update_q_values(self, old_state, action, alpha, gamma, new_state, reward):
         print('New State: ', new_state)
         print('Reward: ', reward)
@@ -73,6 +131,7 @@ class HumanStrategy:
         possible_moves = list(self.game_graph[current_state].keys())
         if len(possible_moves) == 0:
             return 'start_new_path'
+
         print('Current State: {}'.format(current_state))
         print('Valid Moves: {}'.format(list(self.game_graph[current_state].keys())))
         action = input('Input Move: ')
