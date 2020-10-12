@@ -81,7 +81,7 @@ class TicTacToeGame():
 
     def pretty_print_board(self, board):
 
-        board = np.array(np.frombuffer(board, ).reshape(3, 3)).tolist()
+        board = np.array(board)
         symbol_lookup = {-1: 'o', 1: 'x', 0: ' '}
 
         middle_row = ['-', '+', '-', '+', '-']
@@ -102,11 +102,12 @@ class TicTacToeGame():
             print(*row)
 
     def start_new_path(self):
-
-        return np.zeros(shape=(3, 3)).tobytes()
+        board = np.zeros(shape=(3,3))
+        board = tuple(map(tuple, board))
+        return board
 
     def list_valid_actions(self,state):
-        state = np.array(np.frombuffer(state,).reshape(3,3))
+        state = np.array(state)
 
         if np.abs(state.sum(axis=0)).max() == 3 or \
                 np.abs(state.sum(axis=1)).max() == 3  or \
@@ -119,7 +120,7 @@ class TicTacToeGame():
 
     def find_next_state(self, current_state, action):
 
-        current_state = np.array(np.frombuffer(current_state,).reshape(3,3))
+        current_state = np.array(current_state)
         stale_mate = False
         game_over = False
         board_sum = current_state.sum().sum()
@@ -143,9 +144,10 @@ class TicTacToeGame():
             stale_mate = True
         else:
             reward = 0
+        
+        new_state = tuple(map(tuple, current_state))
 
-
-        return current_state.tobytes(), reward, game_over, stale_mate
+        return new_state, reward, game_over, stale_mate
 
 
 
