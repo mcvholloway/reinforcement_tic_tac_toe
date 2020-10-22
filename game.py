@@ -250,6 +250,24 @@ class ConnectFourGame():
 
         return new_state, reward, game_over, stale_mate
 
+    def check_for_terminal(self, state):
+        current_state = np.array(state)
+        
+        if self.check_for_winner(current_state):
+            return 1
+        if np.abs(current_state).sum() == 6*7:
+            return 1
+        return 0
+
+    def calculate_reward(self, state):
+        current_state = np.array(state)
+        
+        if self.check_for_winner(current_state):
+            return 2
+        if np.abs(current_state).sum() == 6*7:
+            return 0
+        return 0
+
     def pretty_print_board(self, board):
 
         board = np.array(board)

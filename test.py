@@ -19,8 +19,8 @@ def remap_keys(di):
 
 if __name__ == '__main__':
 
-    game = TicTacToeGame()
-    #game = ConnectFourGame()
+    #game = TicTacToeGame()
+    game = ConnectFourGame()
     starting_state = game.start_new_path()
     #strategy_1 = Strategy(game_graph = {starting_state : {action: 1 for action in game.list_valid_actions(starting_state)}})
     strategy_2 = MCTSStrategy(game = game, game_graph = {starting_state: [0]})
@@ -33,8 +33,8 @@ if __name__ == '__main__':
     #res = ast.literal_eval(res)
 
     #strategy_1 = Strategy(game_graph = res)
-    strategy_1 = HumanStrategyTTT(game_graph = {starting_state : {action: 1 for action in game.list_valid_actions(starting_state)}})
-    #strategy_2 = HumanStrategyC4(game_graph = {starting_state : {action: 1 for action in game.list_valid_actions(starting_state)}})
+    #strategy_1 = HumanStrategyTTT(game_graph = {starting_state : {action: 1 for action in game.list_valid_actions(starting_state)}})
+    strategy_1 = HumanStrategyC4(game_graph = {starting_state : {action: 1 for action in game.list_valid_actions(starting_state)}})
 
 
     trainer = Trainer(players=[strategy_1, strategy_2], current_state=starting_state, game=game,alpha=.1)
