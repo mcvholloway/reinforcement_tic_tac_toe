@@ -135,7 +135,8 @@ class TicTacToeGame():
                 np.abs(current_state.sum(axis=1)).max() == 3  or \
                 abs(sum([current_state[i,i] for i in range(3)])) == 3 or \
                 abs(sum([current_state[i, 2 - i] for i in range(3)])) == 3:
-            reward = 1
+            #reward = 1
+            reward = 2
             game_over = True
             stale_mate = False
         elif np.abs(current_state).sum() == 9:
@@ -149,7 +150,114 @@ class TicTacToeGame():
 
         return new_state, reward, game_over, stale_mate
 
+class ConnectFourGame():
+    def __init__(self):
+        self.board = np.zeros(shape=(6, 7))
 
+    def check_for_winner(self, board):
+        board = np.array(board)
+        #first, check the rows
+        for i in range(6):
+            for j in range(4):
+                if abs(board[i,j:j+4].sum()) == 4:
+                    return True
+        #then, check the columns
+        for i in range(3):
+            for j in range(7):
+                if abs(board[i:i+4, j].sum()) == 4:
+                    return True
+        #then, diagonals
+        for i in range(3):
+            for j in range(4):
+                if abs(sum([board[i+k, j+k] for k in range(4)])) == 4:
+                    return True
+                if abs(sum([board[i+3-k, j+k] for k in range(4)])) == 4:
+                    return True
+        return False
+
+    def start_new_path(self):
+        board = np.zeros(shape=(6,7))
+        board = tuple(map(tuple, board))
+        return board
+
+    def list_valid_actions(self,state):
+        state = np.array(state)
+
+        if self.check_for_winner(state):
+            return []
+
+        # find the columns that have at least one empty space
+        return [x for x in range(7) if np.abs(state[:,x]).sum() < 6]
+
+    def find_next_state(self, current_state, action):
+
+        current_state = np.array(current_state)
+        stale_mate = False
+        game_over = False
+        board_sum = current_state.sum().sum()
+
+        ### super genius! If board sum is 0, want it to be 1's turn,
+        ### else if board sum is 1, want it to be -1's turn!
+        next_player = (-1)**board_sum
+
+        # figure out where to place the new piece by extracting that column out
+        col = current_state[:,action]
+        new_spot = len(col[col == 0]) - 1
+
+        current_state[new_spot, action] = next_player
+
+        if self.check_for_winner(current_state):
+            reward = 1
+            game_over = True
+            stale_mate = False
+        elif np.abs(current_state).sum() == 6*7:
+            reward = -1
+            game_over = True
+            stale_mate = True
+        else:
+            reward = 0
+        
+        new_state = tuple(map(tuple, current_state))
+
+        return new_state, reward, game_over, stale_mate
+
+    def pretty_print_board(self, board):
+
+        board = np.array(board)
+        symbol_lookup = {-1: 'o', 1: 'x', 0: ' '}
+
+        middle_row = ['-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-']
+
+        def pad_row(row):
+            return [symbol_lookup[row[0]],
+                    '|',
+                    symbol_lookup[row[1]],
+                    '|',
+                    symbol_lookup[row[2]],
+                    '|',
+                    symbol_lookup[row[3]],
+                    '|',
+                    symbol_lookup[row[4]],
+                    '|',
+                    symbol_lookup[row[5]],
+                    '|',
+                    symbol_lookup[row[6]]
+                    ]
+
+        nice_board = [pad_row(board[0]),
+                      middle_row,
+                      pad_row(board[1]),
+                      middle_row,
+                      pad_row(board[2]),
+                      middle_row,
+                      pad_row(board[3]),
+                      middle_row,
+                      pad_row(board[4]),
+                      middle_row,
+                      pad_row(board[5])
+                      ]
+        for row in nice_board:
+            print(*row)
 
 
 

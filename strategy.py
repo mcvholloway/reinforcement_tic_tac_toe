@@ -3,6 +3,7 @@ import math
 import logging
 import numpy as np
 import ast
+from game import ConnectFourGame
 
 logging.basicConfig(level=logging.INFO)
 
@@ -117,6 +118,43 @@ class HumanStrategyTTT:
             action = ast.literal_eval(input('Try again: '))
         return action
 
+class HumanStrategyC4:
+    ### TODO Add MCTS Update values
+    """Class that initiates game graph and provides a method, depending on strategy type, to update
+    the values that dictates the decisions of the player """
+
+
+    def __init__(self, game_graph={}, strategy_type="q_learning"):
+
+        ### game_graph is a dictionary of dictionaries -- keys are states
+        ### and keys of keys are actions and values are q-values
+        self.game_graph = game_graph
+        self.game = ConnectFourGame()
+
+    def update_q_values(self, old_state, action, alpha, gamma, new_state, reward):
+        self.game.pretty_print_board(new_state)
+        print('Reward: ', reward)
+
+    def choose_action(self, current_state, stupidity_rate=0):
+        possible_moves = list(self.game_graph[current_state].keys())
+        if len(possible_moves) == 0:
+            return 'start_new_path'
+        board = np.array(current_state)
+        if board.sum() == 0:
+            print('You are playing as X')
+        else:
+            print('You are playing as O')
+        
+        self.game.pretty_print_board(current_state)
+
+        valid_moves = list(self.game_graph[current_state].keys())
+        
+        print('Valid Moves: {}'.format(valid_moves))
+        action = int(input('Input Move: '))
+        while action not in valid_moves:
+            action = int(input('Try again: '))
+        return action
+
 class HumanStrategy:
     ### TODO Add MCTS Update values
     """Class that initiates game graph and provides a method, depending on strategy type, to update
@@ -176,8 +214,10 @@ class Trainer:
         for i in range(iterations):
             if i % 10000 == 0:
                 logging.info(str(i))
-            if self.strategy in backlog:
-                old_state, move = backlog.pop(self.strategy)
+            #if self.strategy in backlog:
+            if self.current_turn in backlog:
+                #old_state, move = backlog.pop(self.strategy)
+                old_state, move = backlog.pop(self.current_turn)
                 ### since player is making future move, no reward at the moment......
                 self.strategy.update_q_values(old_state=old_state,
                                               action=move,
@@ -203,13 +243,15 @@ class Trainer:
             else:
 
                 ### Log Activity
-                backlog[self.strategy] = (self.current_state, move)
+                #backlog[self.strategy] = (self.current_state, move)
+                backlog[self.current_turn] = (self.current_state, move)
                 new_state, reward, game_over, stale_mate = self.game.find_next_state(self.current_state, move)
 
                 ### update current state
                 self.current_state = new_state
                 if game_over:
-                    old_state, move = backlog.pop(self.strategy)
+                    #old_state, move = backlog.pop(self.strategy)
+                    old_state, move = backlog.pop(self.current_turn)
                     if new_state not in self.strategy.game_graph:
                         valid_actions = self.game.list_valid_actions(new_state)
                         if valid_actions is None:
@@ -229,13 +271,17 @@ class Trainer:
 
                     for log in backlog.keys():
                         old_state, move = backlog[log]
-                        if new_state not in log.game_graph:
+                        #if new_state not in log.game_graph:
+                        if new_state not in self.players[log].game_graph:
                             valid_actions = self.game.list_valid_actions(new_state)
                             if valid_actions is None:
-                                log.game_graph[new_state] = {}
+                                #log.game_graph[new_state] = {}
+                                self.players[log].game_graph[new_state] = {}
                             else:
-                                log.game_graph[new_state] = dict(zip(valid_actions, [1] * len(valid_actions)))
-                        log.update_q_values(old_state=old_state,
+                                #log.game_graph[new_state] = dict(zip(valid_actions, [1] * len(valid_actions)))
+                                self.players[log].game_graph[new_state] = dict(zip(valid_actions, [1] * len(valid_actions)))
+                        #log.update_q_values(old_state=old_state,
+                        self.players[log].update_q_values(old_state = old_state,
                                             action=move,
                                             alpha=self.alpha,
                                             gamma=self.gamma,
@@ -250,7 +296,7 @@ class Trainer:
                 else:
                     ### Switch to next player
                     self.strategy = self.players[(self.current_turn + 1) % self.number_players]
-                    self.current_turn += 1
+                    self.current_turn = (self.current_turn + 1) % self.number_players
 
                     if new_state not in self.strategy.game_graph:
                         valid_actions = self.game.list_valid_actions(new_state)
