@@ -4,6 +4,7 @@ import logging
 import numpy as np
 import ast
 from game import ConnectFourGame
+from tree import Tree, Node
 
 logging.basicConfig(level=logging.INFO)
 
@@ -59,6 +60,64 @@ class Strategy:
             else:
                 action = random.choice(possible_moves)
         return action
+
+class MCTSStrategy:
+    """Strategy that implements a 'memoryless' MCTS
+    """
+
+    def __init__(self, game, game_graph={}, num_iterations = 1000):
+
+        ### game_graph is a dictionary of dictionaries -- keys are states
+        ### and keys of keys are actions and values are q-values
+        ### game is used during the MCTS Tree search
+        self.game_graph = game_graph
+        self.game = game
+        self.num_iterations = num_iterations
+
+    def update_q_values(self, old_state, action, alpha, gamma, new_state, reward):
+
+        pass
+
+    def choose_action(self, current_state, stupidity_rate=0):
+        possible_moves = self.game.list_valid_actions(current_state)
+        if len(possible_moves) == 0:
+            return 'start_new_path'
+
+        tree = Tree()
+        starting_state = current_state
+        node = Node(address = (starting_state,), tree = tree, game = self.game, current_state = starting_state)
+
+        for _ in range(self.num_iterations):
+            while not node.terminal:
+                action = random.choice(list(node.actions.keys()))
+                node.actions[action][1] += 1
+                node = tree.directory[node.make_child(action)]
+
+
+            reward = self.game.calculate_reward(node.current_state)
+
+            while node.parent:
+                action = node.address[-2]
+                node = node.parent
+                node.actions[action][0] += reward
+                # Since we have two players, flip-flop rewards if someone won to give the correct player the correct reward
+                if abs(reward) == 2:
+                    reward *= -1
+            
+            
+        # I have no idea why, but something goes wrong with the tree directory when the AI starts and wins.
+        #actions = tree.directory[(starting_state,)].actions
+        actions = node.actions
+
+        best_action = None
+        best_value = -1000000
+        for action in actions.keys():
+            values = actions[action]
+            if (values[0] / values[1]) > best_value:
+                best_action = action
+                best_value = values[0] / values[1]
+
+        return best_action
 
 class HumanStrategyTTT:
     ### TODO Add MCTS Update values

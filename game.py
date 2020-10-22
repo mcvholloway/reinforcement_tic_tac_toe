@@ -150,6 +150,35 @@ class TicTacToeGame():
 
         return new_state, reward, game_over, stale_mate
 
+    def check_for_terminal(self, state):
+        current_state = np.array(state)
+        
+        if np.abs(current_state.sum(axis=0)).max() == 3 or \
+                np.abs(current_state.sum(axis=1)).max() == 3  or \
+                abs(sum([current_state[i,i] for i in range(3)])) == 3 or \
+                abs(sum([current_state[i, 2 - i] for i in range(3)])) == 3:
+            return 1
+        elif np.abs(current_state).sum() == 9:
+            return 1
+
+        return 0
+
+    def calculate_reward(self, state):
+        current_state = np.array(state)
+
+        if np.abs(current_state.sum(axis=0)).max() == 3 or \
+            np.abs(current_state.sum(axis=1)).max() == 3  or \
+            abs(sum([current_state[i,i] for i in range(3)])) == 3 or \
+            abs(sum([current_state[i, 2 - i] for i in range(3)])) == 3:
+            return 2
+        
+        if np.abs(current_state).sum() == 9:
+            return 0
+
+        return 2
+
+    
+
 class ConnectFourGame():
     def __init__(self):
         self.board = np.zeros(shape=(6, 7))
