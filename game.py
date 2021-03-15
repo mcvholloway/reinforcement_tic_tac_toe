@@ -154,52 +154,7 @@ class TicTacToeGame():
 
 
 
-class Chess:
-    def __init__(self):
-        ### for logging
-        self.piece_dictionary = {
-            'p': 'pawn',
-            'q': 'queen',
-            'k': 'king',
-            'b': 'bishop',
-            'h': 'knight', # h for horse
-            'r': 'rook',
-        }
-        self.board = [[None]*8]*8
 
-        ### pieces keeps track of pieces each player has
-        self.pieces = {'white': [],
-                       'black': []
-                       }
-
-    def start_new_path(self):
-
-        for i in range(8):
-            self.board[7][i] = ('p','w')
-            self.board[2][i] = ('p','b')
-
-        for i in [(0,'w'), (8,'b')]:
-
-            self.board[i][0] = ('r', i[1])
-            self.board[i][7] = ('r', i[1])
-
-            self.board[i][6] = ('h', i[1])
-            self.board[i][1] = ('h', i[1])
-
-            self.board[i][5] = ('b', i[1])
-            self.board[i][2] = ('b', i[1])
-
-            self.board[i][4] = ('k', i[1])
-
-            self.board[i][3] = ('q', i[1])
-
-        return self.board
-
-    def list_valid_actions(self):
-        return None
-
-    def find_next_state(self, current_state, action):
-        return None
 
 
 
