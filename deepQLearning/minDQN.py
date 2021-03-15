@@ -123,8 +123,9 @@ def main():
                 # Exploit best known action
                 # model dims are (batch, env.board.n)
                 encoded = encode_observation(observation, env.board.shape[0])
-                encoded_reshaped = encoded.reshape([1, encoded.shape[0]])
-                predicted = model.predict(encoded_reshaped).flatten()
+                # encoded_reshaped = encoded.reshape([1, encoded.shape[0]])
+                # predicted = model.predict(encoded_reshaped).flatten()
+                predicted = model.predict(encoded_reshaped) #.flatten()
                 action = np.argmax(predicted)
             new_observation, reward, done, info = env.step(action)
             replay_memory.append([observation, action, reward, new_observation, done])
