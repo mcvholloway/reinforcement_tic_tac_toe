@@ -28,7 +28,7 @@ env = ConnectFourGame()
 # print("State space: {}".format(env.board))
 
 # An episode a full game
-train_episodes = 300
+train_episodes = 5000
 test_episodes = 100
 
 def agent(state_shape, action_shape):
@@ -40,14 +40,14 @@ def agent(state_shape, action_shape):
     learning_rate = 0.001
     init = keras.initializers.he_uniform()
     model = keras.Sequential()
-    model.add(keras.layers.Dense(24, input_shape=state_shape, activation='relu', kernel_initializer=init))
+    model.add(keras.layers.Dense(24, input_shape=[42], activation='relu', kernel_initializer=init))
     model.add(keras.layers.Dense(12, activation='relu', kernel_initializer=init))
     model.add(keras.layers.Dense(action_shape, activation='linear', kernel_initializer=init))
     model.compile(loss=keras.losses.Huber(), optimizer=keras.optimizers.Adam(lr=learning_rate), metrics=['accuracy'])
     return model
 
 def get_qs(model, state, step):
-    return model.predict(state.reshape([1, state.shape[0]]))[0]
+    return model.predict(state.reshape(1, 42))[0]
 
 def train(env, replay_memory, model, target_model, done):
     learning_rate = 0.7 # Learning rate
@@ -59,9 +59,9 @@ def train(env, replay_memory, model, target_model, done):
 
     batch_size = 64 * 2
     mini_batch = random.sample(replay_memory, batch_size)
-    current_states = np.array([encode_observation(transition[0], env.board.shape) for transition in mini_batch])
+    current_states = np.array([encode_observation(transition[0], env.board.shape).reshape(42) for transition in mini_batch])
     current_qs_list = model.predict(current_states)
-    new_current_states = np.array([encode_observation(transition[3], env.board.shape) for transition in mini_batch])
+    new_current_states = np.array([encode_observation(transition[3], env.board.shape).reshape(42) for transition in mini_batch])
     future_qs_list = target_model.predict(new_current_states)
 
     X = []
@@ -75,7 +75,7 @@ def train(env, replay_memory, model, target_model, done):
         current_qs = current_qs_list[index]
         current_qs[action] = (1 - learning_rate) * current_qs[action] + learning_rate * max_future_q
 
-        X.append(encode_observation(observation, env.board.shape))
+        X.append(encode_observation(observation, env.board.shape).reshape(42))
         Y.append(current_qs)
     model.fit(np.array(X), np.array(Y), batch_size=batch_size, verbose=0, shuffle=True)
 
@@ -123,8 +123,11 @@ def main():
                 # Exploit best known action
                 # model dims are (batch, env.board.n)
                 encoded = encode_observation(observation, env.board.shape[0])
-                encoded_reshaped = encoded.reshape([1, encoded.shape[0]])
+                #encoded_reshaped = encoded.reshape([1, encoded.shape[0]])
+                encoded_reshaped = encoded.reshape(1, 42)
                 predicted = model.predict(encoded_reshaped).flatten()
+                #print(predicted)
+                #predicted = model.predict(observation)
                 action = np.argmax(predicted)
             new_observation, reward, done, info = env.step(action)
             replay_memory.append([observation, action, reward, new_observation, done])

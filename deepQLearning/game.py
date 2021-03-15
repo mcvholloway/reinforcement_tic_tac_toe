@@ -81,9 +81,13 @@ class ConnectFourGame():
         if outcome[1]:
             return self.board, outcome[0], True, None
         computer_move = random.choice(self.list_valid_actions(self.board))
-        outcome_computer = self.update_board(computer_move)
+        outcome = self.update_board(computer_move)
 
-        return self.board, -np.abs(outcome[0]), outcome_computer[1], None
+        if -np.abs(outcome[0]) == -1:
+            print('######################################################')
+            print('I beat you by using random moves, you sorry sack of shit!!!!')
+
+        return self.board, -np.abs(outcome[0]), outcome[1], None
 
     def check_for_terminal(self, state):
         current_state = np.array(state)
