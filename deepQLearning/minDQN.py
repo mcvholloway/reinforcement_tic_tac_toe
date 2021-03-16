@@ -6,30 +6,40 @@ Running this code will render the agent solving the CartPole environment using O
 Usage: python3 minDQN.py
 """
 
-# import gym
-# import tensorflow as tf
 import numpy as np
-# from tensorflow import keras
 import keras
-
+from keras.models import load_model
 from collections import deque
-import time
 import random
+import os
 from game import ConnectFourGame
+import argparse
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+rootPath = os.path.dirname(os.path.abspath(__file__))
+
+"""Adding some positional arguments"""
+parser = argparse.ArgumentParser()
+parser.add_argument('take_existing_model', action='store_true', default='true')
+parser.add_argument('sequentially_update_opponent', action='store_true', default='true')
+
+
+
+
 # RANDOM_SEED = 5
 # tf.random.set_seed(RANDOM_SEED)
 
 # env = gym.make('CartPole-v1')
-env = ConnectFourGame()
+# env = ConnectFourGame()
 # env.seed(RANDOM_SEED)
 # np.random.seed(RANDOM_SEED)
 
 # print("Action Space: {}".format(env.action_space))
 # print("State space: {}".format(env.board))
 
-# An episode a full game
-train_episodes = 5000
-test_episodes = 100
+
 
 def agent(state_shape, action_shape):
     """ The agent maps X-states to Y-actions
@@ -82,7 +92,12 @@ def train(env, replay_memory, model, target_model, done):
 def encode_observation(observation, n_dims):
     return observation
 
-def main():
+def main(use_existing):
+    # An episode a full game
+    train_episodes = 300
+    test_episodes = 100
+    env = ConnectFourGame()
+    steps_to_update_opponent_threshold = 1000
     epsilon = 1 # Epsilon-greedy algorithm in initialized at 1 meaning every step is random at the start
     max_epsilon = 1 # You can't explore more than 100% of the time
     min_epsilon = 0.01 # At a minimum, we'll always explore 1% of the time
@@ -90,7 +105,23 @@ def main():
 
     # 1. Initialize the Target and Main models
     # Main Model (updated every 4 steps)
-    model = agent(env.board.shape, env.n)
+    """
+    if the take_existing_model flag has been set, try and take an existing model 
+    if no such .h5 file exists or if not take_existing_model flag then create a new one
+    """
+    model = None
+    if use_existing:
+        for fi in os.listdir(rootPath):
+            if '.h5' in fi:
+                logging.debug(f'Loading in model {fi} from {rootPath}')
+                model = load_model(fi)
+                """
+                Since an existing connect four model exists go ahead and set the opponent as the existing model
+                """
+                env = ConnectFourGame(opponent=model)
+    elif not model:
+        model = agent(env.board.shape, env.n)
+
     # Target Model (updated every 100 steps)
     target_model = agent(env.board.shape, env.n)
     target_model.set_weights(model.get_weights())
@@ -104,13 +135,17 @@ def main():
     y = []
 
     steps_to_update_target_model = 0
-
+    steps_to_update_opponent = 0
     for episode in range(train_episodes):
         total_training_rewards = 0
         observation = env.reset()
         done = False
         while not done:
+            # if steps_to_update_opponent %
+            # logging.debug(f'The steps to update target model is {steps_to_update_target_model}')
+            # logging.debug(f'The steps to update opponent is {steps_to_update_opponent}')
             steps_to_update_target_model += 1
+            steps_to_update_opponent +=1
             # if True:
             #     env.render()
 
@@ -121,13 +156,9 @@ def main():
                 action = random.choice(env.list_valid_actions(env.board))
             else:
                 # Exploit best known action
-                # model dims are (batch, env.board.n)
                 encoded = encode_observation(observation, env.board.shape[0])
-                #encoded_reshaped = encoded.reshape([1, encoded.shape[0]])
                 encoded_reshaped = encoded.reshape(1, 42)
                 predicted = model.predict(encoded_reshaped).flatten()
-                #print(predicted)
-                #predicted = model.predict(observation)
                 action = np.argmax(predicted)
             new_observation, reward, done, info = env.step(action)
             replay_memory.append([observation, action, reward, new_observation, done])
@@ -140,18 +171,26 @@ def main():
             total_training_rewards += reward
 
             if done:
-                print('Total training rewards: {} after n steps = {} with final reward = {}'.format(total_training_rewards, episode, reward))
+                logging.debug('Total training rewards: {} after n steps = {} with final reward = {}'.format(total_training_rewards, episode, reward))
                 total_training_rewards += 1
-
+                if steps_to_update_opponent >= steps_to_update_opponent_threshold:
+                    logging.debug('Updating Opponent with new model now')
+                    env = ConnectFourGame(opponent = model)
+                    steps_to_update_opponent = 0
                 if steps_to_update_target_model >= 100:
-                    print('Copying main network weights to the target network weights')
+                    logging.debug('Copying main network weights to the target network weights')
                     target_model.set_weights(model.get_weights())
                     steps_to_update_target_model = 0
                 break
 
         epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(-decay * episode)
-    model.save('connectFourModel')
+        """Every 500 episodes go ahead and save the model"""
+        if episode % 100 == 0:
+            model.save('connectFourModel.h5')
+    model.save('connectFourModel.h5')
     # env.close()
 
 if __name__ == '__main__':
-    main()
+    args = parser.parse_args()
+    use_existing = True if str(args.take_existing_model).lower() in ['y', 'yes', 'true', 't'] else False
+    main(use_existing=use_existing)

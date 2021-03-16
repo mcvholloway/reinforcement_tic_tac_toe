@@ -1,11 +1,15 @@
 import numpy as np
 import random
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 class ConnectFourGame():
-    def __init__(self):
+    def __init__(self, opponent = None):
         self.shape = (6,7)
         self.board = np.zeros(shape=self.shape)
         self.n = 7
+        self.opponent = opponent
 
     def reset(self):
         self.board = np.zeros(shape=self.shape)
@@ -76,17 +80,22 @@ class ConnectFourGame():
 
         return reward, game_over
 
+    def model_makes_move(self, model):
+        return np.argmax(model.predict(self.board.reshape(1,42)))
+
     def step(self, action):
         outcome = self.update_board(action)
         if outcome[1]:
             return self.board, outcome[0], True, None
-        computer_move = random.choice(self.list_valid_actions(self.board))
+        if self.opponent:
+            computer_move = self.model_makes_move(self.opponent)
+        else:
+            computer_move = random.choice(self.list_valid_actions(self.board))
         outcome = self.update_board(computer_move)
 
         if -np.abs(outcome[0]) == -1:
-            print('######################################################')
-            print('I beat you by using random moves, you sorry sack of shit!!!!')
-
+            logging.debug('######################################################')
+            logging.debug('I beat you by using an inferior AI, you sorry sack of shit!!!!')
         return self.board, -np.abs(outcome[0]), outcome[1], None
 
     def check_for_terminal(self, state):
