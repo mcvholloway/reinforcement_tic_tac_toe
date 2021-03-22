@@ -191,7 +191,8 @@ def main(use_existing):
 
         epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(-decay * episode)
         """Every 500 episodes go ahead and save the model"""
-        if episode % 500 == 0:
+        logging.debug('Completed episode {}'.format(episode))
+        if episode % 100 == 0:
             model.save('connectFourModel.h5')
     model.save('connectFourModel.h5')
     # env.close()
