@@ -16,8 +16,9 @@ class ConnectFourGame():
         return self.board
 
 
-    def check_for_winner(self, board):
-        board = np.array(board)
+    def check_for_winner(self):
+        # board = np.array(board.copy())
+        board = self.board
         # first, check the rows
         for i in range(6):
             for j in range(4):
@@ -42,10 +43,10 @@ class ConnectFourGame():
         board = tuple(map(tuple, board))
         return board
 
-    def list_valid_actions(self, state):
-        state = np.array(state)
+    def list_valid_actions(self):
+        state = self.board
 
-        if self.check_for_winner(state):
+        if self.check_for_winner():
             return []
 
         # find the columns that have at least one empty space
@@ -67,41 +68,44 @@ class ConnectFourGame():
 
         self.board[new_spot, action] = next_player
 
-        if self.check_for_winner(self.board):
+        if self.check_for_winner():
             reward = 1
             game_over = True
             stale_mate = False
-        elif np.abs(self.board).sum() == 6 * 7:
+        elif np.abs(self.board).sum().sum() == 6 * 7:
+            logging.debug('#################################################################')
+            logging.debug('Looks like we got a Stale mate heya')
+            self.pretty_print_board(self.board)
             reward = -1
             game_over = True
             stale_mate = True
         else:
             reward = 0
 
-        return reward, game_over
+        return reward, game_over, stale_mate
 
-    def model_makes_move(self, model):
-        return np.argmax(model.predict(self.board.reshape(1,42)))
+
+    def update_opponent(self, opponent):
+        self.opponent = opponent
+        return None
 
     def step(self, action):
         outcome = self.update_board(action)
-        if outcome[1]:
-            return self.board, outcome[0], True, None
-        if self.opponent:
-            computer_move = self.model_makes_move(self.opponent)
-        else:
-            computer_move = random.choice(self.list_valid_actions(self.board))
-        outcome = self.update_board(computer_move)
 
-        if -np.abs(outcome[0]) == -1:
+        if outcome[0]:
+            player = 2 - self.board.sum().sum()
+
+            game_outcome = 'Won!' if outcome[0] == 1 else 'draws in stale mate'
             logging.debug('######################################################')
-            logging.debug('I beat you by using an inferior AI, you sorry sack of shit!!!!')
-        return self.board, -np.abs(outcome[0]), outcome[1], None
+            logging.debug(f'Player {player} {game_outcome}!!!!')
+            if player not in [1,2]:
+                self.pretty_print_board(self.board)
+        return self.board, outcome[0] , outcome[1], outcome[2]
 
     def check_for_terminal(self, state):
         current_state = np.array(state)
 
-        if self.check_for_winner(current_state):
+        if self.check_for_winner():
             return 1
         if np.abs(current_state).sum() == 6 * 7:
             return 1
@@ -110,7 +114,7 @@ class ConnectFourGame():
     def calculate_reward(self, state):
         current_state = np.array(state)
 
-        if self.check_for_winner(current_state):
+        if self.check_for_winner():
             return 2
         if np.abs(current_state).sum() == 6 * 7:
             return 0

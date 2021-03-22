@@ -20,10 +20,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 rootPath = os.path.dirname(os.path.abspath(__file__))
 
-"""Adding some positional arguments"""
-parser = argparse.ArgumentParser()
-parser.add_argument('take_existing_model', action='store_true', default='true')
-parser.add_argument('sequentially_update_opponent', action='store_true', default='true')
+# """Adding some positional arguments"""
+# parser = argparse.ArgumentParser()
+# parser.add_argument('--take_existing_model', action='store_true', default='true')
+# parser.add_argument('--sequentially_update_opponent', action='store_true', default='true')
 
 
 
@@ -97,7 +97,7 @@ def main(use_existing):
     train_episodes = 300
     test_episodes = 100
     env = ConnectFourGame()
-    steps_to_update_opponent_threshold = 1000
+    steps_to_update_opponent_threshold = 20000
     epsilon = 1 # Epsilon-greedy algorithm in initialized at 1 meaning every step is random at the start
     max_epsilon = 1 # You can't explore more than 100% of the time
     min_epsilon = 0.01 # At a minimum, we'll always explore 1% of the time
@@ -135,62 +135,69 @@ def main(use_existing):
     y = []
 
     steps_to_update_target_model = 0
-    steps_to_update_opponent = 0
-    for episode in range(train_episodes):
-        total_training_rewards = 0
+    # steps_to_update_opponent = 0
+    episode = 0
+    while True:
+        episode += 1
+    # for episode in range(train_episodes):
+        # total_training_rewards = 0
         observation = env.reset()
+        buffer = []
         done = False
         while not done:
-            # if steps_to_update_opponent %
-            # logging.debug(f'The steps to update target model is {steps_to_update_target_model}')
-            # logging.debug(f'The steps to update opponent is {steps_to_update_opponent}')
             steps_to_update_target_model += 1
-            steps_to_update_opponent +=1
-            # if True:
-            #     env.render()
 
             random_number = np.random.rand()
             # 2. Explore using the Epsilon Greedy Exploration Strategy
             if random_number <= epsilon:
                 # Explore
-                action = random.choice(env.list_valid_actions(env.board))
+                action = random.choice(env.list_valid_actions())
             else:
                 # Exploit best known action
                 encoded = encode_observation(observation, env.board.shape[0])
                 encoded_reshaped = encoded.reshape(1, 42)
                 predicted = model.predict(encoded_reshaped).flatten()
+                invalid_actions = [x for x in range(7) if x not in env.list_valid_actions()]
+                predicted[invalid_actions] = -np.inf
                 action = np.argmax(predicted)
-            new_observation, reward, done, info = env.step(action)
-            replay_memory.append([observation, action, reward, new_observation, done])
+            
+            new_observation, _ , done, stale_mate = env.step(action)
+            buffer.append((observation, action,new_observation))
+            
+            if len(buffer) > 1:
+                if done:
+                    while buffer:
+                        observation_0, action_0, new_observation_0 = buffer.pop(0)
+                        ## This should be -1 unless you are the last player to make a move and it resulted in Victory!
+                        reward = -1 + 2*(not stale_mate)*(len(buffer) == 0)
+                        replay_memory.append([observation_0, action_0, reward, new_observation_0, done])
+                else:
+                    observation_0, action_0, new_observation_0 = buffer.pop(0)
+                    replay_memory.append([observation_0, action_0, 0, new_observation_0, done])
+
 
             # 3. Update the Main Network using the Bellman Equation
             if steps_to_update_target_model % 4 == 0 or done:
                 train(env, replay_memory, model, target_model, done)
 
             observation = new_observation
-            total_training_rewards += reward
+            # total_training_rewards += reward
 
             if done:
-                logging.debug('Total training rewards: {} after n steps = {} with final reward = {}'.format(total_training_rewards, episode, reward))
-                total_training_rewards += 1
-                if steps_to_update_opponent >= steps_to_update_opponent_threshold:
-                    logging.debug('Updating Opponent with new model now')
-                    env = ConnectFourGame(opponent = model)
-                    steps_to_update_opponent = 0
                 if steps_to_update_target_model >= 100:
                     logging.debug('Copying main network weights to the target network weights')
                     target_model.set_weights(model.get_weights())
                     steps_to_update_target_model = 0
-                break
 
         epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(-decay * episode)
         """Every 500 episodes go ahead and save the model"""
-        if episode % 100 == 0:
+        if episode % 500 == 0:
             model.save('connectFourModel.h5')
     model.save('connectFourModel.h5')
     # env.close()
 
 if __name__ == '__main__':
-    args = parser.parse_args()
-    use_existing = True if str(args.take_existing_model).lower() in ['y', 'yes', 'true', 't'] else False
+    # args = parser.parse_args()
+    # use_existing = True if str(args.take_existing_model).lower() in ['y', 'yes', 'true', 't'] else False
+    use_existing = False
     main(use_existing=use_existing)
